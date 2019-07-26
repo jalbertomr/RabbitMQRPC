@@ -41,7 +41,6 @@ public class RPCServer {
 			   try {
 				  String message = new String(delivery.getBody(), "UTF-8");
 				  int n = Integer.parseInt(message);
-				  
 				  System.out.println("[.] fib(" + message + ")");
 				  response += fib(n);
 			   } catch (RuntimeException e) {
@@ -50,6 +49,7 @@ public class RPCServer {
 				  String exchange = ""; 
 				  String routingKey = delivery.getProperties().getReplyTo();
 				  channel.basicPublish(exchange, routingKey, replyProps, response.getBytes("UTF-8"));
+				  System.out.println(("-> channel.basicPublish [replyTo:"+routingKey+", corrId:"+delivery.getProperties().getCorrelationId()+"]..."));
 				  boolean multiple = false;
 				  channel.basicAck(delivery.getEnvelope().getDeliveryTag(), multiple);
 				// RabbitMq consumer worker thread notifies the RPC server owner thread

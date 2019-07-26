@@ -25,6 +25,8 @@ public class RPCClient implements AutoCloseable {
     }
     
 	public static void main(String[] args) {
+		long startTime = System.nanoTime();
+		
 		try( RPCClient fibonacciRpc = new RPCClient()) {
 			for (int i = 0 ; i < 32; i++ ) {
 				String i_str = Integer.toString(i);
@@ -35,6 +37,8 @@ public class RPCClient implements AutoCloseable {
 		} catch (IOException | TimeoutException | InterruptedException e) {
 			e.printStackTrace();
 		}
+		long endTime = System.nanoTime();
+		System.out.println("tiempo de ejecución de proceso: "+ (endTime - startTime) + " nanoSeg.");
 	}
 
 	private String call(String message) throws IOException, InterruptedException {
@@ -52,6 +56,7 @@ public class RPCClient implements AutoCloseable {
 		
 		final BlockingQueue<String> response = new ArrayBlockingQueue<>(1);
 		boolean autoAck = true; 
+		System.out.println("-> channel.basicConsume [queue:"+replyQueueName+", corrId:"+corrId+"]...");
 		String ctag = channel.basicConsume( replyQueueName, autoAck,
 				(consumerTag, delivery)-> {
 					if (delivery.getProperties().getCorrelationId().equals(corrId)) {
@@ -59,8 +64,11 @@ public class RPCClient implements AutoCloseable {
 					}
 				}, consumerTag->{}
 				);
+		System.out.println("... channel.basicConsume ->");
 		String result = response.take();
+		System.out.println("... response.take() ->");
 		channel.basicCancel(ctag);
+		System.out.println("... basicCancel(ctag) ->");
 		return result;
 	}
 
